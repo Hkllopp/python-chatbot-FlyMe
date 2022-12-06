@@ -4,19 +4,14 @@
 
 import os
 
-from dotenv import load_dotenv, find_dotenv
-
-""" Bot Configuration """
-
 
 class DefaultConfig:
     """Bot Configuration"""
 
-    print(".env found" if find_dotenv() else ".env not found")
-
-    load_dotenv()
-
     PORT = 8000
+    APP_ID = os.environ.get("MicrosoftAppId", "")
+    APP_PASSWORD = os.environ.get("MicrosoftAppPassword", "")
+
     APP_ID = os.environ.get("MicrosoftAppId", "")
     APP_PASSWORD = os.environ.get("MicrosoftAppPassword", "")
     LUIS_APP_ID = os.environ.get("LuisAppId", "")
