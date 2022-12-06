@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'Hkllopp-WebApp-Projet10'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_03A021A91B58431EBFE95E546A2989C4 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_29CBC27AFFBA41838D2C1CBCF115C2E2 }}
