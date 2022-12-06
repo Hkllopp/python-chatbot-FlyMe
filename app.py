@@ -63,32 +63,32 @@ BOT = MyBot()
 # Listen for incoming requests on /api/messages
 async def messages(req: Request) -> Response:
     print("request received")
-    print(req)
+    # print(req)
 
     # Main bot message handler.
     if "application/json" in req.headers["Content-Type"]:
         body = await req.json()
-        print("body")
-        print(body)
+        # print("body")
+        # print(body)
     else:
         print("Content-Type not application/json")
         return Response(status=415)
 
     activity = Activity().deserialize(body)
     auth_header = req.headers["Authorization"] if "Authorization" in req.headers else ""
-    print("auth_header")
-    print(auth_header)
+    # print("auth_header")
+    # print(auth_header)
 
     response = await ADAPTER.process_activity(activity, auth_header, BOT.on_turn)
-    print("response")
-    print(response)
+    # print("response")
+    # print(response)
 
     if response:
-        print("response")
-        print(response)
+        # print("response")
+        # print(response)
         return json_response(data=response.body, status=response.status)
-    print("response")
-    print(Response(status=201))
+    # print("response")
+    # print(Response(status=201))
     return Response(status=201)
 
 
