@@ -1,4 +1,4 @@
-# CoreBot
+# CoreBot with Application Insights
 
 Bot Framework v4 core bot sample.
 
@@ -8,6 +8,7 @@ This bot has been created using [Bot Framework](https://dev.botframework.com), i
 - Implement a multi-turn conversation using Dialogs
 - Handle user interruptions for such things as `Help` or `Cancel`
 - Prompt for and validate requests for information from the user
+- Use [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/cloudservices) to monitor your bot
 
 ## Prerequisites
 
@@ -15,18 +16,28 @@ This sample **requires** prerequisites in order to run.
 
 ### Overview
 
-This bot uses [LUIS](https://www.luis.ai), an AI based cognitive service, to implement language understanding.
+This bot uses [LUIS](https://www.luis.ai), an AI based cognitive service, to implement language understanding
+and [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/cloudservices), an extensible Application Performance Management (APM) service for web developers on multiple platforms.
 
 ### Create a LUIS Application to enable language understanding
 
-The LUIS model for this example can be found under `CognitiveModels/FlightBooking.json` and the LUIS language model setup, training, and application configuration steps can be found [here](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-howto-v4-luis?view=azure-bot-service-4.0&tabs=cs).
+LUIS language model setup, training, and application configuration steps can be found [here](https://docs.microsoft.com/azure/bot-service/bot-builder-howto-v4-luis?view=azure-bot-service-4.0&tabs=cs).
 
-Once you created the LUIS model, update `config.py` with your `LuisAppId`, `LuisAPIKey` and `LuisAPIHostName`.
+If you wish to create a LUIS application via the CLI, these steps can be found in the [README-LUIS.md](README-LUIS.md).
 
-```json
-  "LuisAppId": "Your LUIS App Id",
-  "LuisAPIKey": "Your LUIS Subscription key here",
-  "LuisAPIHostName": "Your LUIS App region here (i.e: westus.api.cognitive.microsoft.com)"
+### Add Application Insights service to enable the bot monitoring
+
+Application Insights resource creation steps can be found [here](https://docs.microsoft.com/azure/azure-monitor/app/create-new-resource).
+
+You must include the instrumentation key in the `config.py` file, as well is in the designated field in your Azure Bot resource.
+
+### Add Activity and Personal Information logging for Application Insights
+To log activity and personal information, extra code is needed in `app.py` after the creation of the telemetry client. This code is *already present* in the sample, but must be unconmmented in order to function. It is important to note that due to privacy concerns, in a real-world application you **must** obtain user consent prior to logging this information.
+
+The required code is as follows:
+```python
+TELEMETRY_LOGGER_MIDDLEWARE = TelemetryLoggerMiddleware(telemetry_client=TELEMETRY_CLIENT, log_personal_information=True)
+ADAPTER.use(TELEMETRY_LOGGER_MIDDLEWARE)
 ```
 
 ## To try this sample
@@ -35,7 +46,7 @@ Once you created the LUIS model, update `config.py` with your `LuisAppId`, `Luis
 ```bash
 git clone https://github.com/Microsoft/botbuilder-samples.git
 ```
-- In a terminal, navigate to `botbuilder-samples\samples\python\13.core-bot` folder
+- In a terminal, navigate to `botbuilder-samples\samples\python\21.corebot-app-insights` folder
 - Activate your desired virtual environment
 - In the terminal, type `pip install -r requirements.txt`
 - Run your bot with `python app.py`
@@ -69,3 +80,6 @@ To learn more about deploying a bot to Azure, see [Deploy your bot to Azure](htt
 - [Azure Portal](https://portal.azure.com)
 - [Language Understanding using LUIS](https://docs.microsoft.com/en-us/azure/cognitive-services/luis/)
 - [Channels and Bot Connector Service](https://docs.microsoft.com/en-us/azure/bot-service/bot-concepts?view=azure-bot-service-4.0)
+- [Application insights Overview](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview)
+- [Getting Started with Application Insights](https://github.com/Microsoft/ApplicationInsights-aspnetcore/wiki/Getting-Started-with-Application-Insights-for-ASP.NET-Core)
+- [Filtering and preprocessing telemetry in the Application Insights SDK](https://docs.microsoft.com/azure/azure-monitor/app/api-filtering-sampling)

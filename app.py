@@ -17,9 +17,15 @@ from botbuilder.core import (
     ConversationState,
     MemoryStorage,
     UserState,
+    TelemetryLoggerMiddleware,
 )
 from botbuilder.core.integration import aiohttp_error_middleware
 from botbuilder.schema import Activity
+from botbuilder.applicationinsights import ApplicationInsightsTelemetryClient
+from botbuilder.integration.applicationinsights.aiohttp import (
+    AiohttpTelemetryProcessor,
+    bot_telemetry_middleware,
+)
 
 from config import DefaultConfig
 from dialogs import MainDialog, BookingDialog
@@ -43,11 +49,26 @@ CONVERSATION_STATE = ConversationState(MEMORY)
 # See https://aka.ms/about-bot-adapter to learn more about how bots work.
 ADAPTER = AdapterWithErrorHandler(SETTINGS, CONVERSATION_STATE)
 
+# Create telemetry client.
+# Note the small 'client_queue_size'.  This is for demonstration purposes.  Larger queue sizes
+# result in fewer calls to ApplicationInsights, improving bot performance at the expense of
+# less frequent updates.
+INSTRUMENTATION_KEY = CONFIG.APPINSIGHTS_INSTRUMENTATION_KEY
+TELEMETRY_CLIENT = ApplicationInsightsTelemetryClient(
+    INSTRUMENTATION_KEY,
+    telemetry_processor=AiohttpTelemetryProcessor(),
+    client_queue_size=10,
+)
+
+# Code for enabling activity and personal information logging.
+# TELEMETRY_LOGGER_MIDDLEWARE = TelemetryLoggerMiddleware(telemetry_client=TELEMETRY_CLIENT, log_personal_information=True)
+# ADAPTER.use(TELEMETRY_LOGGER_MIDDLEWARE)
+
 # Create dialogs and Bot
 RECOGNIZER = FlightBookingRecognizer(CONFIG)
 BOOKING_DIALOG = BookingDialog()
-DIALOG = MainDialog(RECOGNIZER, BOOKING_DIALOG)
-BOT = DialogAndWelcomeBot(CONVERSATION_STATE, USER_STATE, DIALOG)
+DIALOG = MainDialog(RECOGNIZER, BOOKING_DIALOG, telemetry_client=TELEMETRY_CLIENT)
+BOT = DialogAndWelcomeBot(CONVERSATION_STATE, USER_STATE, DIALOG, TELEMETRY_CLIENT)
 
 
 # Listen for incoming requests on /api/messages.
@@ -68,7 +89,9 @@ async def messages(req: Request) -> Response:
 
 
 def init_func(self):
-    APP = web.Application(middlewares=[aiohttp_error_middleware])
+    APP = web.Application(
+        middlewares=[bot_telemetry_middleware, aiohttp_error_middleware]
+    )
     APP.router.add_post("/api/messages", messages)
     return APP
 
