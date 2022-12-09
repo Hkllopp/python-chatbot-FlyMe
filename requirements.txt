@@ -1,5 +1,6 @@
 requests==2.23.0
-botbuilder-core==4.13.0
+# The current library is bugged so we need the latest
+-e ./libraries/botbuilder-core
 botframework-connector==4.13.0
 botbuilder-schema==4.13.0
 botbuilder-dialogs==4.13.0
