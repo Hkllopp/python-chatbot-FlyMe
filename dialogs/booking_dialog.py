@@ -13,7 +13,6 @@ from botbuilder.dialogs.prompts import (
 from botbuilder.core import MessageFactory, BotTelemetryClient, NullTelemetryClient
 from .cancel_and_help_dialog import CancelAndHelpDialog
 from .date_resolver_dialog import DateResolverDialog
-from .date_back_resolver_dialog import DateBackResolverDialog
 
 
 class BookingDialog(CancelAndHelpDialog):
@@ -49,11 +48,13 @@ class BookingDialog(CancelAndHelpDialog):
         self.add_dialog(text_prompt)
         self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__))
         self.add_dialog(
-            DateResolverDialog(DateResolverDialog.__name__, self.telemetry_client)
+            DateResolverDialog("departureDateDialogue", self.telemetry_client)
         )
         self.add_dialog(
-            DateBackResolverDialog(
-                DateBackResolverDialog.__name__, self.telemetry_client
+            DateResolverDialog(
+                "returnDateDialogue",
+                self.telemetry_client,
+                message="When would you like to return?",
             )
         )
         self.add_dialog(waterfall_dialog)
@@ -133,7 +134,7 @@ class BookingDialog(CancelAndHelpDialog):
             booking_details.travel_date
         ):
             return await step_context.begin_dialog(
-                DateResolverDialog.__name__, booking_details.travel_date
+                "departureDateDialogue", booking_details.travel_date
             )  # pylint: disable=line-too-long
 
         return await step_context.next(booking_details.travel_date)
@@ -152,8 +153,7 @@ class BookingDialog(CancelAndHelpDialog):
             booking_details.travel_back_date
         ):
             return await step_context.begin_dialog(
-                DateBackResolverDialog.__name__,
-                booking_details.travel_back_date,
+                "returnDateDialogue", booking_details.travel_back_date
             )  # pylint: disable=line-too-long
 
         return await step_context.next(booking_details.travel_back_date)

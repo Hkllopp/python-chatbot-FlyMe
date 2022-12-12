@@ -22,11 +22,13 @@ class DateResolverDialog(CancelAndHelpDialog):
         self,
         dialog_id: str = None,
         telemetry_client: BotTelemetryClient = NullTelemetryClient(),
+        message: str = None,
     ):
         super(DateResolverDialog, self).__init__(
             dialog_id or DateResolverDialog.__name__, telemetry_client
         )
         self.telemetry_client = telemetry_client
+        self.message = message
 
         date_time_prompt = DateTimePrompt(
             DateTimePrompt.__name__, DateResolverDialog.datetime_prompt_validator
@@ -49,7 +51,7 @@ class DateResolverDialog(CancelAndHelpDialog):
         """Prompt for the date."""
         timex = step_context.options
 
-        prompt_msg = "On what date would you like to travel?"
+        prompt_msg = self.message or "On what date would you like to travel?"
         reprompt_msg = (
             "I'm sorry, for best results, please enter your travel "
             "date including the month, day and year."
@@ -81,7 +83,7 @@ class DateResolverDialog(CancelAndHelpDialog):
 
     @staticmethod
     async def datetime_prompt_validator(prompt_context: PromptValidatorContext) -> bool:
-        """ Validate the date provided is in proper form. """
+        """Validate the date provided is in proper form."""
         if prompt_context.recognized.succeeded:
             timex = prompt_context.recognized.value[0].timex.split("T")[0]
 
