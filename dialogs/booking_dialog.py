@@ -22,6 +22,7 @@ class BookingDialog(CancelAndHelpDialog):
         super(BookingDialog, self).__init__(
             dialog_id or BookingDialog.__name__, telemetry_client
         )
+        self.dialog_id = dialog_id
         self.telemetry_client = telemetry_client
         text_prompt = TextPrompt(TextPrompt.__name__)
         text_prompt.telemetry_client = telemetry_client
@@ -32,14 +33,14 @@ class BookingDialog(CancelAndHelpDialog):
                 self.destination_step,
                 self.origin_step,
                 self.travel_date_step,
-                self.confirm_step, # We added this step
+                self.confirm_step,  # We added this step
                 self.final_step,
             ],
         )
         waterfall_dialog.telemetry_client = telemetry_client
 
         self.add_dialog(text_prompt)
-        self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__)) # We added this dialog
+        self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__))  # We added this dialog
         self.add_dialog(
             DateResolverDialog(DateResolverDialog.__name__, self.telemetry_client)
         )
@@ -122,7 +123,15 @@ class BookingDialog(CancelAndHelpDialog):
             booking_details = step_context.options
             booking_details.travel_date = step_context.result
 
+            properties = {}
+            properties["DialogId"] = self.dialog_id
+            self.telemetry_client.track_event("SuggestionConfirmed", properties)
+
             return await step_context.end_dialog(booking_details)
+
+        properties = {}
+        properties["DialogId"] = self.dialog_id
+        self.telemetry_client.track_event("SuggestionRefuting", properties)
 
         return await step_context.end_dialog()
 
