@@ -5,7 +5,11 @@
 from datatypes_date_time.timex import Timex
 
 from botbuilder.dialogs import WaterfallDialog, WaterfallStepContext, DialogTurnResult
-from botbuilder.dialogs.prompts import ConfirmPrompt, TextPrompt, PromptOptions
+from botbuilder.dialogs.prompts import (
+    ConfirmPrompt,
+    TextPrompt,
+    PromptOptions,
+)
 from botbuilder.core import MessageFactory, BotTelemetryClient, NullTelemetryClient
 from .cancel_and_help_dialog import CancelAndHelpDialog
 from .date_resolver_dialog import DateResolverDialog
@@ -33,16 +37,17 @@ class BookingDialog(CancelAndHelpDialog):
             [
                 self.destination_step,
                 self.origin_step,
+                self.max_budget_step,
                 self.travel_date_step,
                 self.travel_back_date_step,
-                self.confirm_step,  # We added this step
+                self.confirm_step,
                 self.final_step,
             ],
         )
         waterfall_dialog.telemetry_client = telemetry_client
 
         self.add_dialog(text_prompt)
-        self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__))  # We added this dialog
+        self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__))
         self.add_dialog(
             DateResolverDialog(DateResolverDialog.__name__, self.telemetry_client)
         )
@@ -87,6 +92,26 @@ class BookingDialog(CancelAndHelpDialog):
 
         return await step_context.next(booking_details.origin)
 
+    async def max_budget_step(
+        self, step_context: WaterfallStepContext
+    ) -> DialogTurnResult:
+        """Prompt for max budget."""
+        booking_details = step_context.options
+
+        # Capture the results of the previous step
+        booking_details.origin = step_context.result
+        if booking_details.max_budget is None:
+            return await step_context.prompt(
+                TextPrompt.__name__,
+                PromptOptions(
+                    prompt=MessageFactory.text(
+                        "What is your maximum budget for the trip?"
+                    ),
+                ),
+            )
+
+        return await step_context.next(booking_details.max_budget)
+
     async def travel_date_step(
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
@@ -96,7 +121,14 @@ class BookingDialog(CancelAndHelpDialog):
         booking_details = step_context.options
 
         # Capture the results of the previous step
-        booking_details.origin = step_context.result
+        booking_details.max_budget = step_context.result
+
+        # If max_budget not castable to int, send warning message
+        if not booking_details.max_budget.isdigit():
+            await step_context.context.send_activity(
+                "Be careful, your budget is most likely not a number!"
+            )
+
         if not booking_details.travel_date or self.is_ambiguous(
             booking_details.travel_date
         ):
@@ -143,7 +175,7 @@ class BookingDialog(CancelAndHelpDialog):
 
         msg = (
             f"Please confirm, I have you traveling to: { booking_details.destination }"
-            f" from: { booking_details.origin } on: { booking_details.travel_date} and return for { booking_details.travel_back_date}."
+            f" from: { booking_details.origin } on: { booking_details.travel_date} and return for { booking_details.travel_back_date}  for {booking_details.max_budget} dollars maximum.."
         )
 
         # Offer a YES/NO prompt.
