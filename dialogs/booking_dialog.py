@@ -191,12 +191,14 @@ class BookingDialog(CancelAndHelpDialog):
 
             booking_properties = booking_details.__dict__
             self.telemetry_client.track_event("SuggestionConfirmed", properties = booking_properties)
+            self.telemetry_client.flush() # Send telemetry to the server directly
             print(f"{'-'*20}\nCustomEvent : SuggestionConfirmed with properties {booking_properties}\n{'-'*20}")
 
             return await step_context.end_dialog(booking_details)
 
         booking_properties = step_context.options.__dict__
         self.telemetry_client.track_event("SuggestionRefuting", properties = booking_properties)
+        self.telemetry_client.flush() # Send telemetry to the server directly
         print(f"{'-'*20}\nCustomEvent : SuggestionsRefuting with properties {booking_properties}\n{'-'*20}")
 
         return await step_context.end_dialog()
