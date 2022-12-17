@@ -106,7 +106,7 @@ class BookingDialog(CancelAndHelpDialog):
                 TextPrompt.__name__,
                 PromptOptions(
                     prompt=MessageFactory.text(
-                        "What is your maximum budget for the trip?"
+                        "What is your maximum budget for the trip (in dollars) ?"
                     ),
                 ),
             )
