@@ -189,17 +189,15 @@ class BookingDialog(CancelAndHelpDialog):
             booking_details = step_context.options
             # booking_details.travel_back_date = step_context.result
 
-            properties = {}
-            properties["DialogId"] = self.dialog_id
-            self.telemetry_client.track_event("SuggestionConfirmed", properties)
-            print("CustomEvent : SuggestionConfirmed")
+            booking_properties = booking_details.__dict__
+            self.telemetry_client.track_event("SuggestionConfirmed", properties = booking_properties)
+            print(f"{'-'*20}\nCustomEvent : SuggestionConfirmed with properties {booking_properties}\n{'-'*20}")
 
             return await step_context.end_dialog(booking_details)
 
-        properties = {}
-        properties["DialogId"] = self.dialog_id
-        self.telemetry_client.track_event("SuggestionRefuting", properties)
-        print("CustomEvent : SuggestionRefuting")
+        booking_properties = step_context.options.__dict__
+        self.telemetry_client.track_event("SuggestionRefuting", properties = booking_properties)
+        print(f"{'-'*20}\nCustomEvent : SuggestionsRefuting with properties {booking_properties}\n{'-'*20}")
 
         return await step_context.end_dialog()
 
