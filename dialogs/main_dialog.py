@@ -77,16 +77,18 @@ class MainDialog(ComponentDialog):
 
     async def act_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         if not self._luis_recognizer.is_configured:
+            print(f"{'-'*20}\nLUIS is not configured. Skipping prediction and running BookingDialog.\n{'-'*20}")
             # LUIS is not configured, we just run the BookingDialog path with an empty BookingDetailsInstance.
             return await step_context.begin_dialog(
                 self._booking_dialog_id, BookingDetails()
             )
 
+        print(f"{'-'*20}\nLUIS is configured. Running prediction and running BookingDialog.\n{'-'*20}")
         # Call LUIS and gather any potential booking details. (Note the TurnContext has the response to the prompt.)
         intent, luis_result = await LuisHelper.execute_luis_query(
             self._luis_recognizer, step_context.context
         )
-
+        
         if intent == Intent.BOOK_FLIGHT.value and luis_result:
             # Show a warning for Origin and Destination if we can't resolve them.
             await MainDialog._show_warning_for_unsupported_cities(
